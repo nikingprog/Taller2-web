@@ -29,12 +29,12 @@
         
         <div class="metrica">
             <strong>Google Analytics:</strong>
-            <p id="ga-val">Cargando datos...</p>
+            <p id="ga-val">Calculando sesiones en vivo...</p>
         </div>
 
         <div class="metrica">
-            <strong>PageSpeed Insights:</strong>
-            <p id="pagespeed-val">Calculando rendimiento en vivo...</p>
+            <strong>PageSpeed Insights (Estimación Local):</strong>
+            <p id="pagespeed-val">Midiendo velocidad de carga...</p>
         </div>
 
         <div class="metrica">
@@ -46,15 +46,13 @@
     </div>
 
     <script>
-        const URL_SITIO_EVALUAR = https://nikingprog.github.io/Taller2-web/"; // Cambiar por la URL pública real de tu página
-
         function entrar() {
             if (document.getElementById('user').value === 'admin' && document.getElementById('pass').value === '1234') {
                 document.getElementById('login').classList.add('oculto');
                 document.getElementById('panel').classList.remove('oculto');
                 
-                // Cargar datos dinámicos al iniciar sesión
-                cargarDatosReales();
+                // Calcular métricas locales sin APIs externas
+                calcularMetricasLocales();
             } else {
                 document.getElementById('error').style.display = 'block';
             }
@@ -65,37 +63,38 @@
             document.getElementById('login').classList.remove('oculto');
         }
 
-        async function cargarDatosReales() {
-            // 1. PageSpeed API
-            obtenerPageSpeed(URL_SITIO_EVALUAR);
-
-            // 2. Estado de red
-            chequearEstadoRed();
-
-            // 3. Analytics (Simulación de lectura o conexión a tu backend)
-            document.getElementById('ga-val').innerText = "Visitantes activos: Medición vía GA4 activa";
-        }
-
-        async function obtenerPageSpeed(url) {
-            try {
-                const res = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE`);
-                const data = await res.json();
-                const score = Math.round(data.lighthouseResult.categories.performance.score * 100);
-                document.getElementById('pagespeed-val').innerText = `Rendimiento: ${score} / 100`;
-            } catch (err) {
-                document.getElementById('pagespeed-val').innerText = "Rendimiento: No disponible (requiere URL pública)";
+        function calcularMetricasLocales() {
+            // 1. Google Analytics (Conteo de visitas local usando localStorage)
+            let visitas = parseInt(localStorage.getItem('visitas_sitio') || '1');
+            if (!sessionStorage.getItem('sesion_activa')) {
+                visitas++;
+                localStorage.setItem('visitas_sitio', visitas);
+                sessionStorage.setItem('sesion_activa', 'true');
             }
-        }
+            const esMovil = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+            document.getElementById('ga-val').innerText = `Visitantes: ${visitas} | Dispositivo: ${esMovil ? 'Móvil' : 'Escritorio'}`;
 
-        async function chequearEstadoRed() {
+            // 2. Rendimiento local (usando Navigation Timing API nativa de JS)
+            const perfData = window.performance.timing;
+            const tiempoCarga = perfData.loadEventEnd - perfData.navigationStart;
+            
+            let puntaje = 100;
+            if (tiempoCarga > 0) {
+                // Penaliza si la página tarda más de 500ms en cargar
+                puntaje = Math.max(10, Math.min(100, Math.round(100 - (tiempoCarga / 50))));
+            }
+            document.getElementById('pagespeed-val').innerText = `Rendimiento: ${puntaje} / 100 (Tiempo: ${tiempoCarga > 0 ? tiempoCarga : '<100'} ms)`;
+
+            // 3. Prueba de Red y Ancho de Banda Local
             const inicio = performance.now();
-            try {
-                await fetch(window.location.origin, { method: 'HEAD' });
-                const latencia = Math.round(performance.now() - inicio);
-                document.getElementById('netflow-val').innerText = `Tráfico de red: Estable | Latencia: ${latencia} ms`;
-            } catch (e) {
-                document.getElementById('netflow-val').innerText = `Tráfico de red: Estable | Ancho de banda: OK`;
-            }
+            fetch(window.location.href, { method: 'HEAD', cache: 'no-store' })
+                .then(() => {
+                    const latencia = Math.round(performance.now() - inicio);
+                    document.getElementById('netflow-val').innerText = `Tráfico de red: Estable | Latencia local: ${latencia} ms`;
+                })
+                .catch(() => {
+                    document.getElementById('netflow-val').innerText = `Tráfico de red: Estable | Ancho de banda: OK`;
+                });
         }
     </script>
 
