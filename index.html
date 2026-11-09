@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Evaluación Web - Modesto Chávez Franco</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+        .box { background: white; padding: 20px; border-radius: 5px; max-width: 500px; margin: auto; }
+        input, button { width: 100%; padding: 10px; margin: 5px 0; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .oculto { display: none; }
+        .metrica { background: #e9ecef; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. LOGIN DE ADMINISTRADOR -->
+    <div id="login" class="box">
+        <h2>Acceso de Administrador</h2>
+        <input type="text" id="user" placeholder="Usuario (admin)">
+        <input type="password" id="pass" placeholder="Contraseña (1234)">
+        <button onclick="entrar()">Ingresar</button>
+        <p id="error" style="color:red; display:none;">Datos incorrectos</p>
+    </div>
+
+    <!-- 2. PANEL DE MÉTRICAS -->
+    <div id="panel" class="box oculto">
+        <h2>Resultados de Evaluación</h2>
+        
+        <div class="metrica">
+            <strong>Google Analytics:</strong>
+            <p>Visitantes: 50 | Móviles: 80%</p>
+        </div>
+
+        <div class="metrica">
+            <strong>PageSpeed Insights:</strong>
+            <p>Rendimiento: 90 / 100</p>
+        </div>
+
+        <div class="metrica">
+            <strong>NetFlow / LoadView:</strong>
+            <p>Tráfico de red: Estable | Ancho de banda: OK</p>
+        </div>
+
+        <button onclick="salir()" style="background: red;">Cerrar Sesión</button>
+    </div>
+
+    <script>
+        function entrar() {
+            if (document.getElementById('user').value === 'admin' && document.getElementById('pass').value === '1234') {
+                document.getElementById('login').classList.add('oculto');
+                document.getElementById('panel').classList.remove('oculto');
+            } else {
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+        function salir() {
+            document.getElementById('panel').classList.add('oculto');
+            document.getElementById('login').classList.remove('oculto');
+        }
+    </script>
+
+</body>
+</html>
